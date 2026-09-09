@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Scientia Syllabus Plus Timetable Reformatter</title>
+    <title>Timetable Reformatter</title>
     <style>
         :root {
             --uon-navy: #10263B;
@@ -66,19 +66,8 @@
 </head>
 <body>
     <div class="header-bar">
-        <h1>Scientia Syllabus Plus Timetable Reformatter</h1>
+        <h1>Timetable Reformatter</h1>
     </div>
-</p>
-        <ol>
-            <li>Go to the Uni timetable web pages, find the relevant module or course, use your browser to "save page as".</li>
-            <li>Upload the saved page here using the "Choose file" button below</li>
-            <li>Click "Process file"</li>
-            <li>Click "Copy for mModle"</li>
-            <li>Go to moodle, switch on editing, click "view", "source code", then paste.</li>
-            <li>Ta da, hopefully.</li>
-        </ol>
-        </ol>
-        </p>
     
     <div class="upload-section">
         <label>Select HTML timetable file:</label><br>
@@ -276,8 +265,28 @@
                 return;
             }
             
-            let html = '<table border="1" cellpadding="5" cellspacing="0">\n';
-            html += '  <thead>\n    <tr>\n      <th>Session title</th>\n      <th>Session type</th>\n      <th>Week number</th>\n      <th>Date</th>\n      <th>Start time</th>\n      <th>End time</th>\n      <th>Staff</th>\n      <th>Location</th>\n    </tr>\n  </thead>\n  <tbody>\n';
+            let html = `<style>
+table { border-collapse: collapse; font-family: Arial, sans-serif; }
+th, td { border: 1px solid #707D89; padding: 8px 12px; text-align: left; }
+th { background-color: #10263B; color: #FFFFFF; }
+tr:nth-child(even) td { background-color: #FAF6EF; }
+tr:hover td { background-color: #E8E4DD; }
+</style>
+<table>
+  <thead>
+    <tr>
+      <th>Session title</th>
+      <th>Session type</th>
+      <th>Week number</th>
+      <th>Date</th>
+      <th>Start time</th>
+      <th>End time</th>
+      <th>Staff</th>
+      <th>Location</th>
+    </tr>
+  </thead>
+  <tbody>
+`;
             
             timetableData.forEach(session => {
                 html += `    <tr>
