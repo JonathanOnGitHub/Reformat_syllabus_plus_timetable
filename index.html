@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Timetable Reformatter</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h1 { color: #333; }
+        .upload-section { margin-bottom: 20px; padding: 20px; background: #f5f5f5; border-radius: 8px; }
+        input[type="file"] { margin: 10px 0; }
+        input[type="date"] { padding: 5px; margin: 0 10px; }
+        label { font-weight: bold; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #4a90d9; color: white; position: sticky; top: 0; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f0f0f0; }
+        .btn { padding: 8px 16px; background: #4a90d9; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #357abd; }
+        .error { color: red; margin-top: 10px; }
+        .table-container { max-height: 70vh; overflow-y: auto; margin-top: 20px; }
+        .info { color: #666; font-size: 0.9em; margin-top: 5px; }
+        .controls { margin-top: 10px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+        .search-box { padding: 5px; margin-left: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Timetable Reformatter</h1>
+    
+    <div class="upload-section">
+        <label>Select HTML timetable file:</label><br>
+        <input type="file" id="timetable_file" accept=".html"><br>
+        
+        <div class="controls">
+            <div>
+                <label for="start_date">Start of Week 1:</label>
+                <input type="date" id="start_date" value="2026-09-21">
+            </div>
+            <div>
+                <label for="search">Search:</label>
+                <input type="text" id="search" class="search-box" placeholder="Filter sessions...">
+            </div>
+            <button class="btn" onclick="processFile()">Process File</button>
+            <button class="btn" onclick="exportCSV()">Export CSV</button>
+        </div>
+        <p class="info">Default start date: 21/09/2026. Change before processing if needed.</p>
+        <p id="error" class="error"></p>
+    </div>
+
+    <div id="results" style="display: none;">
+        <h2>Timetable <span id="session_count"></span></h2>
+        <div class="table-container">
+            <table id="timetable">
+                <thead>
+                    <tr>
+                        <th>Session title</th>
+                        <th>Session type</th>
+                        <th>Week number</th>
+                        <th>Date</th>
+                        <th>Start time</th>
+                        <th>End time</th>
+                        <th>Staff</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody id="table_body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const DAY_OFFSETS = { 'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4, 'Sat': 5, 'Sun': 6 };
+        let timetableData = [];
+
+        function processFile() {
+            const fileInput = document.getElementById('timetable_file');
+            const errorEl = document.getElementById('error');
+            const resultsEl = document.getElementById('results');
+            
+            errorEl.textContent = '';
+            resultsEl.style.display = 'none';
+            timetableData = [];
+
+            if (!fileInput.files || !fileInput.files[0]) {
+                errorEl.textContent = 'Please select a file.';
+                return;
+            }
+
+            const startDateStr = document.getElementById('start_date').value;
+            if (!startDateStr) {
+                errorEl.textContent = 'Please select a start date.';
+                return;
+            }
+
+            const startDate = new Date(startDateStr + 'T00:00:00');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(e.target.result, 'text/html');
+                    const sessions = parseTimetable(doc, startDate);
+                    timetableData = sessions;
+                    displayTable(sessions);
+                    resultsEl.style.display = 'block';
+                } catch (err) {
+                    errorEl.textContent = 'Error processing file: ' + err.message;
+                }
+            };
+            reader.onerror = function() {
+                errorEl.textContent = 'Error reading file.';
+            };
+            reader.readAsText(fileInput.files[0]);
+        }
+
+        function parseTimetable(doc, startDate) {
+            const sessions = [];
+            const tables = doc.querySelectorAll('table');
+
+            tables.forEach(table => {
+                if (!table.classList.contains('spreadsheet')) return;
+                
+                const rows = table.querySelectorAll('tr');
+                rows.forEach((row, idx) => {
+                    if (idx === 0) return;
+                    const cols = row.querySelectorAll('td');
+                    if (cols.length < 11) return;
+
+                    const sessionTitle = cols[3].textContent.trim();
+                    const sessionType = cols[4].textContent.trim();
+                    const weekNumStr = cols[5].textContent.trim();
+                    const day = cols[6].textContent.trim();
+                    const startTime = cols[7].textContent.trim();
+                    const endTime = cols[8].textContent.trim();
+                    
+                    let staff = cols[9].innerHTML;
+                    staff = staff.replace(/<br\s*\/?>/gi, ', ').trim();
+                    staff = staff.replace(/,\s*$/, '');
+                    staff = staff.replace(/,\s*,/g, ',');
+                    
+                    let location = cols[10].innerHTML;
+                    location = location.replace(/<br\s*\/?>/gi, ', ').trim();
+                    location = location.replace(/,\s*$/, '');
+                    location = location.replace(/,\s*,/g, ',');
+
+                    if (!weekNumStr || isNaN(parseInt(weekNumStr))) return;
+                    
+                    const weekNum = parseInt(weekNumStr);
+                    const dayOffset = DAY_OFFSETS[day] !== undefined ? DAY_OFFSETS[day] : 0;
+                    
+                    const sessionDate = new Date(startDate);
+                    sessionDate.setDate(sessionDate.getDate() + (weekNum - 1) * 7 + dayOffset);
+
+                    sessions.push({
+                        title: sessionTitle,
+                        type: sessionType,
+                        week: weekNum,
+                        date: sessionDate,
+                        start: startTime,
+                        end: endTime,
+                        staff: staff,
+                        location: location
+                    });
+                });
+            });
+
+            sessions.sort((a, b) => {
+                if (a.week !== b.week) return a.week - b.week;
+                if (a.date.getTime() !== b.date.getTime()) return a.date - b.date;
+                return a.start.localeCompare(b.start);
+            });
+
+            return sessions;
+        }
+
+        function displayTable(sessions) {
+            const tbody = document.getElementById('table_body');
+            const countEl = document.getElementById('session_count');
+            tbody.innerHTML = '';
+            
+            sessions.forEach(session => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${session.title}</td>
+                    <td>${session.type}</td>
+                    <td>${session.week}</td>
+                    <td>${formatDate(session.date)}</td>
+                    <td>${session.start}</td>
+                    <td>${session.end}</td>
+                    <td>${session.staff}</td>
+                    <td>${session.location}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            countEl.textContent = `(${sessions.length} sessions)`;
+        }
+
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        document.getElementById('search').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            if (!timetableData.length) return;
+            
+            const filtered = timetableData.filter(session => 
+                session.title.toLowerCase().includes(query) ||
+                session.type.toLowerCase().includes(query) ||
+                session.staff.toLowerCase().includes(query) ||
+                session.location.toLowerCase().includes(query)
+            );
+            displayTable(filtered);
+        });
+
+        function exportCSV() {
+            if (!timetableData.length) {
+                alert('No data to export. Please process a file first.');
+                return;
+            }
+            
+            const headers = ['Session title', 'Session type', 'Week number', 'Date', 'Start time', 'End time', 'Staff', 'Location'];
+            const rows = timetableData.map(s => [
+                `"${s.title.replace(/"/g, '""')}"`,
+                `"${s.type}"`,
+                s.week,
+                formatDate(s.date),
+                s.start,
+                s.end,
+                `"${s.staff.replace(/"/g, '""')}"`,
+                `"${s.location.replace(/"/g, '""')}"`
+            ]);
+            
+            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'timetable.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
