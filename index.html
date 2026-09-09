@@ -276,39 +276,34 @@
                 return;
             }
             
-            let html = `<style>
-table { border-collapse: collapse; font-family: Arial, sans-serif; }
-th, td { border: 1px solid #707D89; padding: 8px 12px; text-align: left; }
-th { background-color: #10263B; color: #FFFFFF; }
-tr:nth-child(even) td { background-color: #FAF6EF; }
-tr:hover td { background-color: #E8E4DD; }
-</style>
-<table>
+            let html = `<table style="border-collapse: collapse; font-family: Arial, sans-serif;">
   <thead>
     <tr>
-      <th>Session title</th>
-      <th>Session type</th>
-      <th>Week number</th>
-      <th>Date</th>
-      <th>Start time</th>
-      <th>End time</th>
-      <th>Staff</th>
-      <th>Location</th>
+      <th style="background-color: #10263B; color: #FFFFFF; border: 1px solid #707D89; padding: 8px 12px; text-align: left;">Session title</th>
+      <th style="background-color: #10263B; color: #FFFFFF; border: 1px solid #707D89; padding: 8px 12px; text-align: left;">Session type</th>
+      <th style="background-color: #10263B; color: #FFFFFF; border: 1px solid #707D89; padding: 8px 12px; text-align: left;">Week number</th>
+      <th style="background-color: #10263B; color: #FFFFFF; border: 1px solid #707D89; padding: 8px 12px; text-align: left;">Date</th>
+      <th style="background-color: #10263B; color: #FFFFFF; border: 1px solid #707D89; padding: 8px 12px; text-align: left;">Start time</th>
+      <th style="background-color: #10263B; color: #FFFFFF; border: 1px solid #707D89; padding: 8px 12px; text-align: left;">End time</th>
+      <th style="background-color: #10263B; color: #FFFFFF; border: 1px solid #707D89; padding: 8px 12px; text-align: left;">Staff</th>
+      <th style="background-color: #10263B; color: #FFFFFF; border: 1px solid #707D89; padding: 8px 12px; text-align: left;">Location</th>
     </tr>
   </thead>
   <tbody>
 `;
             
-            timetableData.forEach(session => {
+            timetableData.forEach((session, idx) => {
+                const evenRow = idx % 2 === 0;
+                const rowStyle = evenRow ? 'background-color: #FAF6EF;' : '';
                 html += `    <tr>
-      <td>${session.title}</td>
-      <td>${session.type}</td>
-      <td>${session.week}</td>
-      <td>${formatDate(session.date)}</td>
-      <td>${session.start}</td>
-      <td>${session.end}</td>
-      <td>${session.staff}</td>
-      <td>${session.location}</td>
+      <td style="border: 1px solid #707D89; padding: 8px 12px; text-align: left; ${rowStyle}">${session.title}</td>
+      <td style="border: 1px solid #707D89; padding: 8px 12px; text-align: left; ${rowStyle}">${session.type}</td>
+      <td style="border: 1px solid #707D89; padding: 8px 12px; text-align: left; ${rowStyle}">${session.week}</td>
+      <td style="border: 1px solid #707D89; padding: 8px 12px; text-align: left; ${rowStyle}">${formatDate(session.date)}</td>
+      <td style="border: 1px solid #707D89; padding: 8px 12px; text-align: left; ${rowStyle}">${session.start}</td>
+      <td style="border: 1px solid #707D89; padding: 8px 12px; text-align: left; ${rowStyle}">${session.end}</td>
+      <td style="border: 1px solid #707D89; padding: 8px 12px; text-align: left; ${rowStyle}">${session.staff}</td>
+      <td style="border: 1px solid #707D89; padding: 8px 12px; text-align: left; ${rowStyle}">${session.location}</td>
     </tr>\n`;
             });
             
