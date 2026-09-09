@@ -3,43 +3,73 @@
 <head>
     <title>Timetable Reformatter</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; max-width: 1200px; margin: 0 auto; padding: 20px; }
-        h1 { color: #333; }
-        .upload-section { margin-bottom: 20px; padding: 20px; background: #f5f5f5; border-radius: 8px; }
+        :root {
+            --uon-navy: #10263B;
+            --uon-blue-80: #405162;
+            --uon-blue-60: #707D89;
+            --uon-white: #FFFFFF;
+            --uon-stone: #FAF6EF;
+        }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background-color: var(--uon-stone);
+        }
+        h1 { color: var(--uon-navy); }
+        .header-bar {
+            background-color: var(--uon-navy);
+            color: var(--uon-white);
+            padding: 15px 20px;
+            margin: -20px -20px 20px -20px;
+        }
+        .header-bar h1 {
+            color: var(--uon-white);
+            margin: 0;
+        }
+        .upload-section { 
+            margin-bottom: 20px; 
+            padding: 20px; 
+            background: var(--uon-white); 
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(16, 38, 59, 0.1);
+        }
         input[type="file"] { margin: 10px 0; }
         input[type="date"] { padding: 5px; margin: 0 10px; }
-        label { font-weight: bold; }
+        label { font-weight: bold; color: var(--uon-navy); }
         table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #4a90d9; color: white; position: sticky; top: 0; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        tr:hover { background-color: #f0f0f0; }
-        .btn { padding: 8px 16px; background: #4a90d9; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .btn:hover { background: #357abd; }
-        .btn-export { background: #28a745; }
-        .btn-export:hover { background: #218838; }
-        .error { color: red; margin-top: 10px; }
-        .table-container { max-height: 70vh; overflow-y: auto; margin-top: 20px; }
-        .info { color: #666; font-size: 0.9em; margin-top: 5px; }
+        th, td { border: 1px solid var(--uon-blue-60); padding: 10px; text-align: left; }
+        th { background-color: var(--uon-navy); color: var(--uon-white); position: sticky; top: 0; }
+        tr:nth-child(even) { background-color: var(--uon-stone); }
+        tr:hover { background-color: #E8E4DD; }
+        .btn { 
+            padding: 10px 20px; 
+            background: var(--uon-navy); 
+            color: var(--uon-white); 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 14px;
+        }
+        .btn:hover { background: var(--uon-blue-80); }
+        .btn-export { background: #005F36; }
+        .btn-export:hover { background: #004028; }
+        .error { color: #B91C2E; margin-top: 10px; }
+        .table-container { max-height: 70vh; overflow-y: auto; margin-top: 20px; background: var(--uon-white); border-radius: 8px; }
+        .info { color: var(--uon-blue-60); font-size: 0.9em; margin-top: 5px; }
         .controls { margin-top: 10px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
-        .search-box { padding: 5px; margin-left: 20px; }
+        .search-box { padding: 5px; margin-left: 20px; border: 1px solid var(--uon-blue-60); border-radius: 4px; }
+        .results-section { background: var(--uon-white); padding: 20px; border-radius: 8px; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <h1>Timetable Reformatter</h1>
+    <div class="header-bar">
+        <h1>Timetable Reformatter</h1>
+    </div>
     
     <div class="upload-section">
-        <p>Find your timetable on the Uni timetable pages and do a "save page as html". Then:
-        </p>
-        <ol>
-            <li>Upload here using the buttons below</li>
-            <li>Click "Process file"</li>
-            <li>Click "Copy for mModle"</li>
-            <li>Go to moodle, switch on editing, click "view", "source code", then paste.</li>
-            <li>Ta da, hopefully.</li>
-        </ol>
-        </ol>
-        </p>
         <label>Select HTML timetable file:</label><br>
         <input type="file" id="timetable_file" accept=".html"><br>
         
@@ -59,8 +89,8 @@
         <p id="error" class="error"></p>
     </div>
 
-    <div id="results" style="display: none;">
-        <h2>Timetable <span id="session_count"></span></h2>
+    <div id="results" class="results-section" style="display: none;">
+        <h2 style="color: var(--uon-navy);">Timetable <span id="session_count"></span></h2>
         <div class="table-container">
             <table id="timetable">
                 <thead>
