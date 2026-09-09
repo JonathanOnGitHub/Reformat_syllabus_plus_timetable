@@ -16,6 +16,8 @@
         tr:hover { background-color: #f0f0f0; }
         .btn { padding: 8px 16px; background: #4a90d9; color: white; border: none; border-radius: 4px; cursor: pointer; }
         .btn:hover { background: #357abd; }
+        .btn-export { background: #28a745; }
+        .btn-export:hover { background: #218838; }
         .error { color: red; margin-top: 10px; }
         .table-container { max-height: 70vh; overflow-y: auto; margin-top: 20px; }
         .info { color: #666; font-size: 0.9em; margin-top: 5px; }
@@ -40,7 +42,7 @@
                 <input type="text" id="search" class="search-box" placeholder="Filter sessions...">
             </div>
             <button class="btn" onclick="processFile()">Process File</button>
-            <button class="btn" onclick="exportCSV()">Export CSV</button>
+            <button class="btn btn-export" onclick="exportHTML()">Copy for Moodle</button>
         </div>
         <p class="info">Default start date: 21/09/2026. Change before processing if needed.</p>
         <p id="error" class="error"></p>
@@ -216,33 +218,35 @@
             displayTable(filtered);
         });
 
-        function exportCSV() {
+        function exportHTML() {
             if (!timetableData.length) {
                 alert('No data to export. Please process a file first.');
                 return;
             }
             
-            const headers = ['Session title', 'Session type', 'Week number', 'Date', 'Start time', 'End time', 'Staff', 'Location'];
-            const rows = timetableData.map(s => [
-                `"${s.title.replace(/"/g, '""')}"`,
-                `"${s.type}"`,
-                s.week,
-                formatDate(s.date),
-                s.start,
-                s.end,
-                `"${s.staff.replace(/"/g, '""')}"`,
-                `"${s.location.replace(/"/g, '""')}"`
-            ]);
+            let html = '<table border="1" cellpadding="5" cellspacing="0">\n';
+            html += '  <thead>\n    <tr>\n      <th>Session title</th>\n      <th>Session type</th>\n      <th>Week number</th>\n      <th>Date</th>\n      <th>Start time</th>\n      <th>End time</th>\n      <th>Staff</th>\n      <th>Location</th>\n    </tr>\n  </thead>\n  <tbody>\n';
             
-            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
+            timetableData.forEach(session => {
+                html += `    <tr>
+      <td>${session.title}</td>
+      <td>${session.type}</td>
+      <td>${session.week}</td>
+      <td>${formatDate(session.date)}</td>
+      <td>${session.start}</td>
+      <td>${session.end}</td>
+      <td>${session.staff}</td>
+      <td>${session.location}</td>
+    </tr>\n`;
+            });
             
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'timetable.csv';
-            a.click();
-            URL.revokeObjectURL(url);
+            html += '  </tbody>\n</table>';
+            
+            navigator.clipboard.writeText(html).then(() => {
+                alert('HTML table copied to clipboard! Paste it directly into Moodle.');
+            }).catch(() => {
+                alert('Failed to copy. Please try selecting the table manually and copy.');
+            });
         }
     </script>
 </body>
